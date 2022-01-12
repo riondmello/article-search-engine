@@ -7,7 +7,7 @@ skip_words = ['a', 'an', 'and', 'the', 'is', 'are']
 
 # For now, we keep this as a simple dict - later expand using regex or a database in itself.
 typo_dict = {'article': ['article', 'articel', 'articl', 'srticle', ]}
-
+word_index = {}
 isIndexBuilt = False
 
 
@@ -47,7 +47,7 @@ def build_results(query):
     query_words = query.split(' ')
     results_from_index = []
     for i, word in enumerate(query_words):
-        if i == 0 and word in typo_dict('article'):
+        if i == 0 and word in typo_dict['article']:
             # Requirement # 1
             return direct_fetch(query_words[1])
 
@@ -64,8 +64,10 @@ def search_index(word):
     """
     if not isIndexBuilt:
         build_index(get_data())
-
-    return []
+    try:
+        return word_index[word]
+    except KeyError:
+        return []
 
 
 def build_index(data):
@@ -75,19 +77,46 @@ def build_index(data):
     :return:
     """
     global isIndexBuilt
+    global word_index
 
-    # We try to create a TF-IDF (term frequency inverse document frequency) index here
+    # We try to create a strip down TF-IDF (term frequency inverse document frequency) index here
+
+    for article in data:
+        id = article['id']
+        for attribute in article:
+            for word in clean_query(attribute):
+                if word in word_index:
+                    if id not in word_index[word]:
+                        word_index[word].append(id)
+                else:
+                    word_index[word] = [id]
 
     isIndexBuilt = True
 
 
-def rank_results(query_words, results_from_index):
+def rank_results(query_words, results_from_index, limit=5):
     """
     Aggregate and rank the search results for each word in the query
     :param query_words:
     :param results_from_index:
+    :limit no. of results returned
     :return:
     """
+
+    # build simple weights around the results for each word
+    # Sort by total weight on each result
+    # limit to top N results
+
+    rank_dict = {}
+    total = len(query_words)
+    for i in range(start=0, stop=total-1):
+        for res in results_from_index[i]:
+            if res in rank_dict:
+                rank_dict[res] += total - i
+            else:
+                rank_dict[res] = total - i
+
+    # TODO: sort and limit
 
     return []
 
