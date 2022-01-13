@@ -3,7 +3,7 @@ from sys import argv
 from cache import cache_check, cache_add
 from database import get_data, fetch_by_id
 
-skip_words = ['a', 'an', 'and', 'the', 'is', 'are']
+skip_words = ['a', 'an', 'and', 'the', 'is', 'are', 'has', 'had']
 
 # For now, we keep this as a simple dict - later expand using regex or a database in itself.
 typo_dict = {'article': ['article', 'articel', 'articl', 'srticle', ]}
@@ -16,19 +16,18 @@ def article_search(input_query=''):
     :param input_query: The input query. A list of words forming the search query
     :return: A list of articles from database most relavent to the search. Empty list if no matches.
     """
-    result = []
-
     cleaned_query = clean_query(input_query)
 
     quick_result = cache_check(cleaned_query)
     if quick_result:
         return quick_result
 
+    query_result = build_results(query)
 
     # We've performed a new search. Add this to Cache for future use
-    cache_add(query, result)
+    cache_add(query, query_result)
 
-    return result
+    return query_result
 
 
 def clean_query(input_query):

@@ -6,7 +6,8 @@ import os
 
 isDataLoaded = False
 article_data = {}
-database_path = 'test/resources/article-data.json'
+database_path = 'test/resources/articles.json'
+dataAttributes = []
 
 
 def load_data():
@@ -30,3 +31,25 @@ def fetch_by_id(identifier):
         return [a for a in article_data if a['id'] == identifier]
     except KeyError:
         return [{'Error': 'Invalid Id'}]
+
+
+def fetch_by_attribute(attr, value):
+    results = []
+    for art in article_data:
+        if attr in art and art[attr] == value:
+            results.append(art)
+    return results
+
+
+def get_data_attributes():
+    global dataAttributes
+
+    # Memoization for subsequent loads
+    if dataAttributes:
+        return dataAttributes
+
+    for art in article_data:
+        for key in art:
+            if key not in dataAttributes:
+                dataAttributes.append(key)
+    return dataAttributes
